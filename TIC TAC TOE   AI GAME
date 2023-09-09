@@ -1,0 +1,122 @@
+
+import random
+def print_board(board):
+    for row in board:
+        print(" | ".join(row))
+        print("-" * 9)
+
+
+def is_board_full(board):
+    return all(all(cell != ' ' for cell in row) for row in board)
+def is_winner(board, player):
+    for row in board:
+        if all(cell == player for cell in row):
+            return True
+    for col in range(3):
+        if all(board[row][col] == player for row in range(3)):
+            return True
+    if all(board[i][i] == player for i in range(3)) or all(board[i][2 - i] == player for i in range(3)):
+        return True
+    return False
+
+# Function to evaluate the board for the AI player (Maximizer)
+def evaluate(board):
+    if is_winner(board, 'X'):
+        return 1
+    elif is_winner(board, 'O'):
+        return -1
+    else:
+        return 0
+
+# Minimax function with Alpha-Beta Pruning
+def minimax(board, depth, is_maximizing, alpha, beta):
+    if is_winner(board, 'X'):
+        return 1
+    if is_winner(board, 'O'):
+        return -1
+    if is_board_full(board):
+        return 0
+
+    if is_maximizing:
+        max_eval = float('-inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'X'
+                    eval = minimax(board, depth + 1, False, alpha, beta)
+                    board[i][j] = ' '
+                    max_eval = max(max_eval, eval)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'O'
+                    eval = minimax(board, depth + 1, True, alpha, beta)
+                    board[i][j] = ' '
+                    min_eval = min(min_eval, eval)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
+        return min_eval
+
+# AI player's move using Minimax with Alpha-Beta Pruning
+def ai_move(board):
+    best_move = None
+    best_eval = float('-inf')
+    alpha = float('-inf')
+    beta = float('inf')
+
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                board[i][j] = 'X'
+                eval = minimax(board, 0, False, alpha, beta)
+                board[i][j] = ' '
+                if eval > best_eval:
+                    best_eval = eval
+                    best_move = (i, j)
+
+    board[best_move[0]][best_move[1]] = 'X'
+
+# Main game loop
+def play_game():
+    board = [[' ' for _ in range(3)] for _ in range(3)]
+    print("WELCOME TO TIC TAC TOE GAME!")
+    print_board(board)
+
+    while True:
+        player_row = int(input("Enter the row (0, 1, 2) for your move: "))
+        player_col = int(input("Enter the column (0, 1, 2) for your move: "))
+
+        if board[player_row][player_col] != ' ':
+            print("Invalid move. Try again.")
+            continue
+
+        board[player_row][player_col] = 'O'
+        print_board(board)
+
+        if is_winner(board, 'O'):
+            print("Congratulations! You win!")
+            break
+        elif is_board_full(board):
+            print("It's a draw!")
+            break
+
+        ai_move(board)
+        print("ARTIFICIAL INTELLIIGENCE's move:")
+        print_board(board)
+
+        if is_winner(board, 'X'):
+            print("ARTIFICIAL INTELLIGENCE WINS. BETTER LUCK NEXT TIME")
+            break
+        elif is_board_full(board):
+            print("It's a draw!")
+            break
+
+if __name__ == "__main__":
+    play_game()
